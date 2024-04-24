@@ -1,0 +1,21 @@
+extends ../base.pug
+
+append vars
+	- title = "PiKVM Session"
+	- main_js = "kvm/main"
+	- body_class = "body-no-select"
+	- css_list = css_list.concat(["navbar", "window", "modal", "led", "slider", "switch", "radio", "progress", "keypad", "tabs"])
+	- css_list = css_list.concat(["kvm/stream", "kvm/hid", "kvm/msd", "kvm/system", "kvm/keyboard", "kvm/about"])
+
+block body
+	include navbar.pug
+	include windows.pug
+
+	ul(class="footer")
+		li(id="kvmd-meta-server-host" class="footer-left")
+		li(class="footer-right")
+			a(target="_blank" href="https://pikvm.org") PiKVM Project
+			| &nbsp; | &nbsp;
+			a(target="_blank" href="https://docs.pikvm.org") Documentation
+			| &nbsp; | &nbsp;
+			a(target="_blank" href="https://pikvm.org/support") Support

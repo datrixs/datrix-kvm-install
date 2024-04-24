@@ -1,0 +1,418 @@
+/*****************************************************************************
+#                                                                            #
+#    KVMD - The main PiKVM daemon.                                           #
+#                                                                            #
+#    Copyright (C) 2018-2022  Maxim Devaev <mdevaev@gmail.com>               #
+#                                                                            #
+#    This program is free software: you can redistribute it and/or modify    #
+#    it under the terms of the GNU General Public License as published by    #
+#    the Free Software Foundation, either version 3 of the License, or       #
+#    (at your option) any later version.                                     #
+#                                                                            #
+#    This program is distributed in the hope that it will be useful,         #
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of          #
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           #
+#    GNU General Public License for more details.                            #
+#                                                                            #
+#    You should have received a copy of the GNU General Public License       #
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.  #
+#                                                                            #
+*****************************************************************************/
+
+
+"use strict";
+
+
+import {tools, $} from "../tools.js";
+import {wm} from "../wm.js";
+import baseUrl from '../setting.js'
+
+
+function getQueryString(name) {
+  const reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+  const r = window.location.search.substr(1).match(reg);
+  if (r != null) return unescape(r[2]); return null;
+}
+
+export function Recorder() {
+	var self = this;
+
+	/************************************************************************/
+
+	var __ws = null;
+
+	var __play_timer = null;
+	var __recording = false;
+	var __events = [];
+	var __events_time = 0;
+	var __last_event_ts = 0;
+	var _init_is_ws = null
+	var operation_ws_init = null
+
+	// events 处理
+	var __playScript = function(script_data) {
+		let events = [];
+		let events_time = 0;
+		if (typeof script_data == 'object') {
+			script_data.forEach(c => {
+				if (c.event_type === "delay") {
+					__checkInt(c.event.millis, "Non-integer delay");
+					if (c.event.millis < 0) {
+						throw "Negative delay";
+					}
+					events_time += c.event.millis;
+				}
+				events.push(c);
+			})
+			__events_time = events_time;
+			__events = events;
+		}
+	}
+
+	// 录屏初始化
+	const record_screen_init = function() {
+		// 录屏播放events
+		const log_id = getQueryString('log_id')
+		if (log_id) {
+			let http = tools.makeRequest("GET", `${baseUrl.rcc_base_url}/api/equipment/operate_logs/detail?operate_log_id=${log_id}`, function() {
+				console.log(JSON.parse(http.response))
+				if (http.status === 200) {
+					const data = JSON.parse(http.response)
+					__playScript(data.data['kvm_script'])
+					_init_is_ws = setInterval(() => {
+						if (Boolean(__ws)) {
+							setTimeout(() => {
+								__playRecord()
+							}, 0)
+							clearInterval(_init_is_ws)
+						}
+					}, 1000)}
+			})
+		}
+	}
+
+	// 操作初始化
+	const operation_init = function() {
+		operation_ws_init = setInterval(() => {
+			if (Boolean(__ws)) {
+				setTimeout(() => {
+					__startRecord()
+				}, 0)
+				clearInterval(operation_ws_init)
+			}
+		}, 500)
+	}
+
+	// 操作保存
+	self.operation_save = function() {
+		console.log(__events)
+		const body = {
+			operate_log_id: Number(getQueryString('operateId')) || '',
+			kvm_script: __events
+		}
+		let http = tools.makeRequest("PUT", `${baseUrl.rcc_base_url}/api/equipment/operate_logs`, function() {
+			// if (http.readyState === 4) {
+			// 	if (http.status !== 200) {
+			// 		wm.error("GPIO error:<br>", http.responseText);
+			// 		__stopProcess();
+			// 	} else if (http.status === 200) {
+			// 		__play_timer = setTimeout(() => __runEvents(index + 1, time), 0);
+			// 	}
+			// }
+		}, JSON.stringify(body), 'application/json')
+	}
+
+	var __init__ = function() {
+		// 页面类型 1：查看录屏 2：操作
+		const page_type = getQueryString('type') || '';
+		if (page_type) {
+			$("stream-box").classList.toggle("stream-box-offline", false);
+			switch (page_type) {
+				case '1':
+					record_screen_init()
+					break;
+				// 关闭自动录制
+				// case '2':
+				// 	operation_init()
+				// 	break;
+			}
+		}
+		
+		tools.el.setOnClick($("hid-recorder-record"), __startRecord);
+		tools.el.setOnClick($("hid-recorder-stop"), __stopProcess);
+		tools.el.setOnClick($("hid-recorder-play"), __playRecord);
+		tools.el.setOnClick($("hid-recorder-clear"), __clearRecord);
+
+		$("hid-recorder-new-script-file").onchange = __uploadScript;
+		tools.el.setOnClick($("hid-recorder-upload"), () => $("hid-recorder-new-script-file").click());
+		tools.el.setOnClick($("hid-recorder-download"), __downloadScript);
+	};
+
+	/************************************************************************/
+
+	self.setSocket = function(ws) {
+		if (ws !== __ws) {
+			__ws = ws;
+		}
+		if (__ws === null) {
+			__stopProcess();
+		}
+		__refresh();
+	};
+
+	self.recordWsEvent = function(event) {
+		__recordEvent(event);
+	};
+
+	self.recordPrintEvent = function(text) {
+		__recordEvent({"event_type": "print", "event": {"text": text}});
+	};
+
+	self.recordAtxButtonEvent = function(button) {
+		__recordEvent({"event_type": "atx_button", "event": {"button": button}});
+	};
+
+	self.recordGpioSwitchEvent = function(channel, to) {
+		__recordEvent({"event_type": "gpio_switch", "event": {"channel": channel, "state": to}});
+	};
+
+	self.recordGpioPulseEvent = function(channel) {
+		__recordEvent({"event_type": "gpio_pulse", "event": {"channel": channel}});
+	};
+
+	var __recordEvent = function(event) {
+		if (__recording) {
+			let now = new Date().getTime();
+			if (__last_event_ts) {
+				let delay = now - __last_event_ts;
+				__events.push({"event_type": "delay", "event": {"millis": delay}});
+				__events_time += delay;
+			}
+			__last_event_ts = now;
+			__events.push(event);
+			__setCounters(__events.length, __events_time);
+		}
+	};
+
+	var __startRecord = function() {
+		__clearRecord();
+		__recording = true;
+		__refresh();
+	};
+
+	var __stopProcess = function() {
+		if (__play_timer) {
+			clearTimeout(__play_timer);
+			__play_timer = null;
+		}
+		if (__recording) {
+			__recording = false;
+		}
+		__refresh();
+	};
+
+	var __playRecord = function() {
+		__play_timer = setTimeout(() => __runEvents(0), 0);
+		__refresh();
+	};
+
+	var __clearRecord = function() {
+		__events = [];
+		__events_time = 0;
+		__last_event_ts = 0;
+		__refresh();
+	};
+
+	var __downloadScript = function() {
+		let blob = new Blob([JSON.stringify(__events, undefined, 4)], {"type": "application/json"});
+		let url = window.URL.createObjectURL(blob);
+		let el_anchor = document.createElement("a");
+		el_anchor.href = url;
+		el_anchor.download = "script.json";
+		el_anchor.click();
+		window.URL.revokeObjectURL(url);
+	};
+
+	var __uploadScript = function() {
+		let el_input = $("hid-recorder-new-script-file");
+		let script_file = (el_input.files.length ? el_input.files[0] : null);
+		if (script_file) {
+			let reader = new FileReader();
+			reader.onload = function () {
+				let events = [];
+				let events_time = 0;
+
+				try {
+					let raw_events = JSON.parse(reader.result);
+					__checkType(raw_events, "object", "Base of script is not an objects list");
+
+					for (let event of raw_events) {
+						__checkType(event, "object", "Non-dict event");
+						__checkType(event.event, "object", "Non-dict event");
+
+						if (event.event_type === "delay") {
+							__checkInt(event.event.millis, "Non-integer delay");
+							if (event.event.millis < 0) {
+								throw "Negative delay";
+							}
+							events_time += event.event.millis;
+						} else if (event.event_type === "print") {
+							__checkType(event.event.text, "string", "Non-string print text");
+						} else if (event.event_type === "key") {
+							__checkType(event.event.key, "string", "Non-string key code");
+							__checkType(event.event.state, "boolean", "Non-bool key state");
+						} else if (event.event_type === "mouse_button") {
+							__checkType(event.event.button, "string", "Non-string mouse button code");
+							__checkType(event.event.state, "boolean", "Non-bool mouse button state");
+						} else if (event.event_type === "mouse_move") {
+							__checkType(event.event.to, "object", "Non-object mouse move target");
+							__checkInt(event.event.to.x, "Non-int mouse move X");
+							__checkInt(event.event.to.y, "Non-int mouse move Y");
+						} else if (event.event_type === "mouse_wheel") {
+							__checkType(event.event.delta, "object", "Non-object mouse wheel delta");
+							__checkInt(event.event.delta.x, "Non-int mouse delta X");
+							__checkInt(event.event.delta.y, "Non-int mouse delta Y");
+						} else if (event.event_type === "atx_button") {
+							__checkType(event.event.button, "string", "Non-string ATX button");
+						} else if (event.event_type === "gpio_switch") {
+							__checkType(event.event.channel, "string", "Non-string GPIO channel");
+							__checkType(event.event.state, "boolean", "Non-bool GPIO state");
+						} else if (event.event_type === "gpio_pulse") {
+							__checkType(event.event.channel, "string", "Non-string GPIO channel");
+						} else if (event.event_type === "mouse_relative") {
+							__checkType(event.event.squash, "boolean", "Non-bool squash state");
+							__checkType(event.event.delta, "object", "Non-object mouse wheel delta");
+						} else {
+							throw `Unknown event type: ${event.event_type}`;
+						}
+
+						events.push(event);
+					}
+
+					__events = events;
+					__events_time = events_time;
+				} catch (err) {
+					wm.error(`Invalid script: ${err}`);
+				}
+
+				el_input.value = "";
+				__refresh();
+			};
+			reader.readAsText(script_file, "UTF-8");
+		}
+	};
+
+	var __checkType = function(obj, type, msg) {
+		if (typeof obj !== type) {
+			throw msg;
+		}
+	};
+
+	var __checkInt = function(obj, msg) {
+		if (!Number.isInteger(obj)) {
+			throw msg;
+		}
+	};
+
+	var __runEvents = function(index, time=0) {
+		while (index < __events.length) {
+			__setCounters(__events.length - index + 1, __events_time - time);
+			let event = __events[index];
+			console.log(event)
+
+			if (event.event_type === "delay") {
+				__play_timer = setTimeout(() => __runEvents(index + 1, time + event.event.millis), event.event.millis);
+				return;
+
+			} else if (event.event_type === "print") {
+				let http = tools.makeRequest("POST", "/api/hid/print?limit=0", function() {
+					if (http.readyState === 4) {
+						if (http.status === 413) {
+							wm.error("Too many text for paste!");
+							__stopProcess();
+						} else if (http.status !== 200) {
+							wm.error("HID paste error:<br>", http.responseText);
+							__stopProcess();
+						} else if (http.status === 200) {
+							__play_timer = setTimeout(() => __runEvents(index + 1, time), 0);
+						}
+					}
+				}, event.event.text, "text/plain");
+				return;
+
+			} else if (event.event_type === "atx_button") {
+				let http = tools.makeRequest("POST", `/api/atx/click?button=${event.event.button}`, function() {
+					if (http.readyState === 4) {
+						if (http.status !== 200) {
+							wm.error("ATX error:<br>", http.responseText);
+							__stopProcess();
+						} else if (http.status === 200) {
+							__play_timer = setTimeout(() => __runEvents(index + 1, time), 0);
+						}
+					}
+				});
+				return;
+
+			} else if (["gpio_switch", "gpio_pulse"].includes(event.event_type)) {
+				let path = "/api/gpio";
+				if (event.event_type === "gpio_switch") {
+					path += `/switch?channel=${event.event.channel}&state=${event.event.to}`;
+				} else { // gpio_pulse
+					path += `/pulse?channel=${event.event.channel}`;
+				}
+				let http = tools.makeRequest("POST", path, function() {
+					if (http.readyState === 4) {
+						if (http.status !== 200) {
+							wm.error("GPIO error:<br>", http.responseText);
+							__stopProcess();
+						} else if (http.status === 200) {
+							__play_timer = setTimeout(() => __runEvents(index + 1, time), 0);
+						}
+					}
+				});
+				return;
+
+			} else if (["key", "mouse_button", "mouse_move", "mouse_wheel", "mouse_relative"].includes(event.event_type)) {
+				__ws.send(JSON.stringify(event));
+			}
+
+			index += 1;
+		}
+		if ($("hid-recorder-loop-switch").checked) {
+			setTimeout(() => __runEvents(0));
+		} else {
+			__stopProcess();
+		}
+	};
+
+	var __refresh = function() {
+		if (__play_timer) {
+			$("hid-recorder-led").className = "led-yellow-rotating-fast";
+			$("hid-recorder-led").title = "Playing...";
+		} else if (__recording) {
+			$("hid-recorder-led").className = "led-red-rotating-fast";
+			$("hid-recorder-led").title = "Recording...";
+		} else {
+			$("hid-recorder-led").className = "led-gray";
+			$("hid-recorder-led").title = "";
+		}
+
+		tools.el.setEnabled($("hid-recorder-record"), (__ws && !__play_timer && !__recording));
+		tools.el.setEnabled($("hid-recorder-stop"), (__ws && (__play_timer || __recording)));
+		tools.el.setEnabled($("hid-recorder-play"), (__ws && !__recording && __events.length));
+		tools.el.setEnabled($("hid-recorder-clear"), (!__play_timer && !__recording && __events.length));
+		tools.el.setEnabled($("hid-recorder-loop-switch"), (__ws && !__recording));
+
+		tools.el.setEnabled($("hid-recorder-upload"), (!__play_timer && !__recording));
+		tools.el.setEnabled($("hid-recorder-download"), (!__play_timer && !__recording && __events.length));
+
+		__setCounters(__events.length, __events_time);
+	};
+
+	var __setCounters = function(events_count, events_time) {
+		$("hid-recorder-time").innerHTML = tools.formatDuration(events_time);
+		$("hid-recorder-events-count").innerHTML = events_count;
+	};
+
+	__init__();
+}

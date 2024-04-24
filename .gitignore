@@ -1,0 +1,14 @@
+/src/
+/site/
+/build/
+/dist/
+/v*.tar.gz
+/*.pkg.tar.xz
+/*.pkg.tar.zst
+/*.egg-info
+/*kvmd-*.tar.gz
+*.pyc
+*.swp
+/venv/
+.idea
+.DS_Store

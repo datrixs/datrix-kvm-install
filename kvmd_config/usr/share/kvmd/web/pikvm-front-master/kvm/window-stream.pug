@@ -1,0 +1,37 @@
+div(id="stream-ocr-window" class="window")
+	div(id="stream-ocr-selection" class="hidden")
+
+div(id="stream-window" class="window window-resizable")
+	div(id="stream-window-header" class="window-header")
+		div(class="window-grab") MJPEG
+		button(class="window-button-close") #[b &times;]
+		button(class="window-button-maximize") &#9744;
+		button(class="window-button-original") &bull;
+		button(class="window-button-enter-full-tab") &#9650;
+		button(class="window-button-full-screen") &#10530;
+
+	div(id="stream-info")
+
+	button(class="window-button-exit-full-tab") &#9660;
+	div(id="stream-box" class="stream-box-offline")
+		img(id="stream-image" src=`${png_dir}/blank-stream.png`)
+		video(id="stream-video" class="hidden" autoplay playsinline muted)
+		div(id="stream-fullscreen-active")
+
+	div(id="stream-mouse-buttons" class="keypad" align="center")
+		div(class="keypad-block")
+			div(class="keypad-row")
+				div(data-code="left" class="key wide-4 left small") #[span Mouse#[br]Left]
+				div(data-code="left" class="modifier wide-2 left small") #[span #[b &bull;]#[br]&larr; Hold]
+				div(class="empty-key" style="width:10px")
+				div(data-code="middle" class="key wide-2 left small") #[span Mouse#[br]Middle]
+				div(data-code="middle" class="modifier wide-2 left small") #[span #[b &bull;]#[br]&larr; Hold]
+				div(class="empty-key" style="width:10px")
+				div(data-code="right" class="modifier wide-2 right small") #[span #[b &bull;]#[br]Hold &rarr;]
+				div(data-code="right" class="key wide-4 right small") #[span Mouse#[br]Right]
+			div(class="keypad-row" style="display:none")
+				div(data-code="up" class="key wide-4 left small") #[span Mouse#[br]Up/Back]
+				div(data-code="up" class="modifier wide-2 left small") #[span #[b &bull;]#[br]&larr; Hold]
+				div(class="empty-key" style="width:10px")
+				div(data-code="down" class="modifier wide-2 right small") #[span #[b &bull;]#[br]Hold &rarr;]
+				div(data-code="down" class="key wide-4 right small") #[span Mouse#[br]Down/Fw]

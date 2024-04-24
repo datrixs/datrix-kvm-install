@@ -1,0 +1,9 @@
+#!/usr/sbin/python
+# EASY-INSTALL-ENTRY-SCRIPT: kvmd==3.183,console_scripts,kvmd-helper-pst-remount
+
+__requires__ = "kvmd==3.183"
+
+from kvmd.helpers.remount import main
+
+if __name__ == "__main__":
+    main()

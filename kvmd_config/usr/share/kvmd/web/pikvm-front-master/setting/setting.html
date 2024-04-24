@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>KVM</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/share/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/share/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/share/favicon-16x16.png">
+    <link rel="manifest" href="./share/site.webmanifest">
+    <link rel="mask-icon" href="./share/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="stylesheet" href="/share/css/vars.css">
+    <link rel="stylesheet" href="/share/css/main.css">
+    <link rel="stylesheet" href="/share/css/setting.css">
+    <link rel="stylesheet" href="/share/css/setting.css">
+    <link rel="stylesheet" href="/share/css/modal.css">
+    <link rel="stylesheet" href="/share/css/navbar.css">
+    <script type="module">
+        import {main} from "/share/js/setting/main.js"
+        window.onload = function() {
+            main();
+        }
+    </script>
+</head>
+<body>
+    <ul id="navbar">
+        <li class="left"><a id="logo" href="/">&larr;&nbsp;&nbsp;<img class="svg-gray" src="/share/svg/logo.svg" alt="&amp;pi;-kvm"></a></li>
+    </ul>
+    <div class="setting">
+        <div>
+            <div>
+                <p class="title">kvm硬件信息</p>
+                <ul class="menu">
+                    <li class="opera feature-disabled" data-show-cls="device">设备信息</li>
+                    <li class="opera feature-disabled" data-show-cls="network">网络设置</li>
+                    <li class="opera feature-disabled" data-show-cls="secure">安全设置</li>
+                    <li class="opera feature-disabled" data-show-cls="time">时间设置</li>
+                </ul>
+            </div>
+            <div>
+                <p class="title">系统管理</p>
+                <ul class="menu">
+                    <li class="opera feature-disabled" data-show-cls="user-manage">用户管理</li>
+                    <li class="opera feature-disabled" data-show-cls="logs">日志信息</li>
+                    <li class="opera feature-disabled" data-show-cls="firmware">维护</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 设备信息 -->
+        <div class="hidden right device">
+            <div class="box">
+                <p class="desc">设备信息</p>
+                <p class="item">
+                    <span>设备型号：</span>
+                    <span id="equ_name" class="value"></span>
+                </p>
+                <p class="item">
+                    <span>MFG#：</span>
+                    <span id="mfg" class="value"></span>
+                </p>
+                <div id="mac"></div>
+                <p class="item">
+                    <span>固件版本：</span>
+                    <span id="version" class="value"></span>
+                </p>
+            </div>
+
+            <div id="ips" class="box">
+                <p class="desc">IP信息</p>
+                <p class="item">
+                    <span>IP地址1：</span>
+                    <span class="value"></span>
+                </p>
+                <p class="item">
+                    <span>子网掩码1：</span>
+                    <span class="value"></span>
+                </p>
+                <p class="item">
+                    <span>网关1：</span>
+                    <span class="value"></span>
+                </p>
+                <p class="item">
+                    <span>主要DNS服务器1：</span>
+                    <span class="value"></span>
+                </p>
+                <p class="item">
+                    <span>备用DNS服务器1：</span>
+                    <span class="value"></span>
+                </p>
+                <p class="item">
+                    <span>IPv6地址1：</span>
+                    <span class="value"></span>
+                </p>
+                <p class="item">
+                    <span>IPv6子网络前缀长度1：</span>
+                    <span class="value"></span>
+                </p>
+                <p class="item">
+                    <span>IP地址2：</span>
+                    <span class="value"></span>
+                </p>
+                <p class="item">
+                    <span>子网掩码2：</span>
+                    <span class="value"></span>
+                </p>
+            </div>
+        </div>
+
+        <!-- 网络设置 -->
+        <div class="hidden right network">
+            <div class="box">
+                <p class="desc">Service连接端口</p>
+                <p class="item feature-disabled">
+                    <span>程序：</span>
+                    <input id="project" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>HTTP：</span>
+                    <input id="http" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>HTTPS：</span>
+                    <input id="https" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>SSH：</span>
+                    <input disabled id="ssh" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>Telnet：</span>
+                    <input disabled id="telnet" class="value" type="text">
+                </p>
+            </div>
+            <p class="item-nic">
+                <label for="nic">备援NIC：</label>
+                <input id="nic" class="value" type="checkbox">
+            </p>
+            <!-- 网络适配器 -->
+            <select class="item-nic" id="network"></select>
+            <div class="box">
+                <p class="desc">设定IPv4</p>
+                <p>IP地址：</p>
+                <p>
+                    <input id="ipv4-auto" name="ipv4" type="radio"><label for="ipv4-auto">自动取得IP地址</label>
+                </p>
+                <p>
+                    <input id="ipv4-hand" name="ipv4" type="radio"><label for="ipv4-hand">手动取得IP地址</label>
+                </p>
+                <p class="item">
+                    <span>IP地址：</span>
+                    <input id="ipv4-address" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>子网掩码：</span>
+                    <input id="ipv4-netmask" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>默认网关：</span>
+                    <input id="ipv4-broadcast" class="value" type="text">
+                </p>
+                <p>DNS服务器</p>
+                <p>
+                    <p>
+                        <input id="dns-auto" name="dns" value="true" type="radio"><label for="dns-auto">自动取得域名服务器地址</label>
+                    </p>
+                    <p>
+                        <input id="dns-hand" name="dns" value="false" type="radio"><label for="dns-hand">手动取得域名服务器地址</label>
+                    </p>
+                    <p class="item">
+                        <span>首选DNS服务器：</span>
+                        <input id="master_dns" class="value" type="text">
+                    </p>
+                    <p class="item">
+                        <span>备用DNS服务器：</span>
+                        <input id="auxiliary_dns" class="value" type="text">
+                    </p>
+                </p>
+            </div>
+            <div class="box">
+                <p class="desc">设定IPv6</p>
+                <p>IPv6地址：</p>
+                <p>
+                    <input id="ipv6-auto" name="ipv6" value="true" type="radio"><label for="ipv6-auto">自动取得IPv6地址</label>
+                </p>
+                <p>
+                    <input id="ipv6-hand" name="ipv6" value="false" type="radio"><label for="ipv6-hand">手动取得IPv6地址</label>
+                </p>
+                <p class="item">
+                    <span>IPv6地址：</span>
+                    <input id="ipv6-address" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>子网络前缀长度：</span>
+                    <input id="ipv6-prefix_len" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>默认网关：</span>
+                    <input id="ipv6-broadcast" class="value" type="text">
+                </p>
+
+                <p>DNS服务器</p>
+                <p>
+                    <p>
+                        <input id="dns6-auto" name="dns6" value="true" type="radio"><label for="dns6-auto">自动取得域名服务器地址</label>
+                    </p>
+                    <p>
+                        <input id="dns6-hand" name="dns6" value="false" type="radio"><label for="dns6-hand">手动取得域名服务器地址</label>
+                    </p>
+                    <p class="item">
+                        <span>首选DNS服务器：</span>
+                        <input id="master_dns6" class="value" type="text">
+                    </p>
+                    <p class="item">
+                        <span>备用DNS服务器：</span>
+                        <input id="auxiliary_dns6" class="value" type="text">
+                    </p>
+                </p>
+            </div>
+            <p class="item-speed">
+                <span>网络数据转移率：</span>
+                <input id="network_rate" class="value" type="text">KBps
+            </p>
+            <div class="box">
+                <p class="desc">DDNS</p>
+                <p>
+                    <input id="ddns-status" type="checkbox">
+                    <label for="ddns-status">开启</label>
+                </p>
+                <p class="item">
+                    <span>主机名称：</span>
+                    <input disabled id="hostname" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>DDNS：</span>
+                    <input disabled id="ddns" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>用户名：</span>
+                    <input disabled id="ddns-username" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>密码：</span>
+                    <input disabled id="ddns-password" class="value" type="password">
+                </p>
+                <div class="item">
+                    <span>DDNS重试时间：</span>
+                    <p>
+                        <input disabled id="ddns-retry" class="value" type="text">小时
+                    </p>
+                </div>
+            </div>
+            <button id="save-network">保存</button>
+        </div>
+
+        <!-- 安全设置 -->
+        <div class="hidden right secure">
+            <div class="box">
+                <p class="desc">登录失败：</p>
+                <p class="item item-start">
+                    <input id="login_fail_open" type="checkbox">
+                    <label for="login_fail_open">开启</label>
+                </p>
+                <div class="item">
+                    <span>允许：</span>
+                    <div>
+                        <input id="recycle" type="text" class="value">
+                        <span>次</span>
+                    </div>
+                    
+                </div>
+                <div class="item">
+                    <span>超时登出：</span>
+                    <div>
+                        <input id="timeout" type="text" class="value">
+                        <span>分</span>
+                    </div>
+                </div>
+                <div class="item-lock">
+                    <div>
+                        <input id="lock_client" type="checkbox" class="value">
+                        <label for="lock_client">锁定客户端PC</label>
+                    </div>
+                    <div>
+                        <input id="lock_account" type="checkbox" class="value">
+                        <label for="lock_account">锁定账号</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box">
+                <p class="desc">过滤：</p>
+                <div class="item item-start">
+                    <div class="all">
+                        <input id="ip_enable" type="checkbox">
+                        <label for="ip_enable">允许IP过滤</label>
+                    </div>
+                    <div>
+                        <input id="ip_include" name="ip_include" type="radio">
+                        <label for="ip_include">包括</label>
+                        <input id="ip_noinclude" name="ip_include" type="radio">
+                        <label for="ip_noinclude">不包括</label>
+                    </div>
+                </div>
+                <div class="item">
+                    <textarea name="" id="filter_ips" cols="30" rows="10"></textarea>
+                </div>
+                <p class="item">
+                    <span>登录字符串</span>
+                    <input id="login_str" type="text" class="value">
+                </p>
+                <div class="item item-start">
+                    <div class="all">
+                        <input id="mac_enable" type="checkbox">
+                        <label for="mac_enable">允许MAC过滤</label>
+                    </div>
+                    <div>
+                        <input id="mac_include" name="mac_include" type="radio">
+                        <label for="mac_include">包括</label>
+                        <input id="mac_noinclude" name="mac_include" type="radio">
+                        <label for="mac_noinclude">不包括</label>
+                    </div>
+                </div>
+                <div class="item">
+                    <textarea name="" id="filter_macs" cols="30" rows="10"></textarea>
+                </div>
+            </div>
+
+            <div class="box">
+                <p class="desc">安全级别</p>
+                <div id="safe_level"></div>
+                <p>注意：您可以使用HTTP或HTTPS登录</p>
+            </div>
+
+            <div class="box">
+                <p class="desc">工作模式：</p>
+                <div id="opera-mode"></div>
+            </div>
+
+            <div class="box">
+                <p class="desc">多用户模式</p>
+                <p class="item">
+                    <span>多用户模式：</span>
+                    <select name="" id="users_mode" class="value">
+                    </select>
+                </p>
+                <div class="item feature-disabled">
+                    <span>超时注销：</span>
+                    <p>
+                        <input id="user-timeout" type="text" class="value">
+                        <span>秒（0-255秒）</span>
+                    </p>
+                </div>
+                <p class="item" id="users_max_box">
+                    <span>同时在线人数上限：</span>
+                    <input id="users_max" class="value" type="text" />
+                </p>
+            </div>
+
+            <button id="save-secure">保存</button>
+        </div>
+
+        <!-- 时间设置 -->
+        <div class="hidden right time">
+            <div class="box">
+                <p class="desc">时区：</p>
+                <div class="item">
+                    <select name="" id="zone" class="value"></select>
+                </div>
+                <div class="item item-start">
+                    <input id="dst" type="checkbox">
+                    <label for="dst">夏时制</label>
+                </div>
+            </div>
+            <div class="box">
+                <p class="desc">日期：</p>
+                <div class="item">
+                    <input id="date" type="date" class="value">
+                </div>
+            </div>
+            <div class="box">
+                <p class="desc">时间：</p>
+                <div class="item item-start item-time">
+                    <input id="hour" class="num" type="text">
+                    <span>：</span>
+                    <input id="minute" class="num" type="text">
+                    <span>：</span>
+                    <input id="second" class="num" type="text">
+                    <button id="date-time-sync">同步</button>
+                </div>
+            </div>
+            <div class="box">
+                <p class="desc">网络时间</p>
+                <div class="item item-start">
+                    <input id="auto_calibration" type="checkbox">
+                    <label for="auto_calibration">启用自动校准</label>
+                </div>
+                <div class="item item-start">
+                    <span>首选时间服务器</span>
+                    <select name="" id="master_datetime_server" class="value">
+                    </select>
+                </div>
+                <div class="item item-start">
+                    <input id="master_server_ip_enable" type="checkbox">
+                    <label for="master_server_ip_enable">主要客制服务器IP：</label>
+                    <input id="master_server_ip" type="text" class="value">
+                </div>
+                <div class="item item-start">
+                    <input id="subsidiary_server_status" type="checkbox">
+                    <label for="subsidiary_server_status">替代时间服务器</label>
+                    <select name="" id="sub_datetime_server" class="value">
+                    </select>
+                </div>
+                <div class="item item-start">
+                    <input id="sub_server_ip_enable" type="checkbox">
+                    <label for="sub_server_ip_enable">替代客制服务器IP：</label>
+                    <input id="sub_server_ip" type="text" class="value">
+                </div>
+                <div class="item item-start">
+                    <div>
+                        <span>校准时间每隔</span>
+                        <input id="auto_calibration_interval" class="value" type="text">
+                        <span>天</span>
+                    </div>
+                    <button id="sync-network-time">校准时间</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户管理 -->
+        <div class="hidden right user-manage">
+            <div class="user-content">
+                <div id="user-role-menu">
+                </div>
+                <div id="role-panel" class="hidden panel">
+                    <input id="role-id" type="hidden">
+                    <div class="item">
+                        <span>角色名</span>
+                        <input id="role-name" type="text" class="value" />
+                    </div>
+                    <div class="item">
+                        <span>备注</span>
+                        <textarea class="value" id="role-remark" cols="30" rows="5"></textarea>
+                    </div>
+                    <div class="item">
+                        <span>权限</span>
+                        <div id="permissions" class="value">
+                        </div>
+                    </div>
+                </div>
+                <div id="user-panel" class="hidden panel">
+                    <input id="user-id" type="hidden">
+                    <div class="item">
+                        <span>用户名</span>
+                        <input id="username" type="text" class="value" />
+                    </div>
+                    <div class="item">
+                        <span>密码</span>
+                        <input id="password" type="password" class="value" />
+                    </div>
+                    <div class="item">
+                        <span>确认密码</span>
+                        <input id="repeat_password" type="password" class="value" />
+                    </div>
+                    <div class="item">
+                        <span>选择角色</span>
+                        <select id="user_role" class="value"></select>
+                    </div>
+                    <div class="item">
+                        <span>备注</span>
+                        <textarea class="value" id="remark" cols="30" rows="5"></textarea>
+                    </div>
+
+                    <div class="user-btns">
+                        <!-- <button id="">解除登录限制</button> -->
+                        <button id="reset-password">重置初始密码</button>
+                        <button id="lock_or_unlock"></button>
+                    </div>
+                </div>
+            </div>
+            <div class="user-btns">
+                <button id="add-role">添加角色</button>
+                <button id="add-user">添加用户</button>
+                <button id="user-save">保存</button>
+                <button id="user-or-role-delete">删除</button>
+            </div>
+        </div>
+
+        <!-- 日志信息 -->
+        <div class="hidden right logs">
+            <table class="item-table">
+                <thead>
+                    <tr class="table-row">
+                        <th>时间</th>
+                        <th>严重性级别</th>
+                        <th>用户</th>
+                        <th>日志信息</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+            <div class="log-btns">
+                <button id="prev-page">上一页</button>
+                <button id="next-page">下一页</button>
+            </div>
+            <p id="logs-empty">暂无数据</p>
+        </div>
+
+        <!-- 固件升级 -->
+        <div class="hidden right firmware">
+            <div class="box">
+                <p class="desc">RCC管理系统配置信息</p>
+                <p class="item">
+                    <span>IP地址：</span>
+                    <input id="rcc_ip" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>端口：</span>
+                    <input id="rcc_port" class="value" type="text">
+                </p>
+                <p class="item">
+                    <span>协议：</span>
+                    <select id="rcc_protocol" class="value">
+                        <option value="http">http</option>
+                        <option value="https">https</option>
+                    </select>
+                </p>
+                <button id="rcc_save">保存</button>
+            </div>
+            <div class="box">
+                <p class="desc">固件升级</p>
+                <div class="item item-start">
+                    <p>当前固件版本：<span id="firmware_version"></span></p>
+                </div>
+                <div class="item">
+                    <p>文件名称</p>
+                    <input id="file" class="value" type="file" accept=".tar.gz">
+                </div>
+                <div id="unavail" class="feature-disabled">
+                    <span>当前无可升级版本</span>
+                </div>
+                <div id="avail" class="feature-disabled avail">
+                    <span>有可升级版本</span>
+                    <button id="view_version">查看版本信息</button>
+                </div>
+                <!-- <div class="item">
+                    <p>上传进度：</p>
+                    <input type="text" class="value">
+                </div> -->
+                <button id="upgrade">升级固件</button>
+            </div>
+            <div class="box">
+                <p class="desc">显示信息</p>
+
+                <button id="show_edid">显示信息</button>
+                <button id="update_edid">更新显示信息</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

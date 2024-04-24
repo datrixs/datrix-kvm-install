@@ -1,0 +1,104 @@
+li(class="right")
+	a(class="menu-button" href="#")
+		+navbar_led("link-led", "led-link")
+		+navbar_led("stream-led", "led-stream")
+		+navbar_led("hid-keyboard-led", "led-hid-keyboard")
+		+navbar_led("hid-mouse-led", "led-hid-mouse")
+		| System
+	div(data-dont-hide-menu id="system-menu" class="menu")
+		table(class="kv" style="width: calc(100% - 20px)")
+			tr
+				td(class="value") Runtime settings &amp; tools
+				td(id="webterm" class="feature-disabled") #[button(data-force-hide-menu data-show-window="webterm-window" class="small") &bull; Term]
+				td #[button(data-force-hide-menu data-show-window="about-window" class="small") &bull; About]
+				td #[button(data-force-hide-menu id="open-log-button" class="small") &bull; Log]
+				td(id="wol" class="feature-disabled")
+					button(data-force-hide-menu id="gpio-button-__wol__" class="gpio-button small" data-channel="__wol__"
+						data-confirm="Are you sure to send Wake-on-LAN packet to the server?") &bull; WoL
+		hr
+		div(id="stream-message-no-webrtc" class="hidden")
+			+menu_message("warning", "WebRTC is not supported by this browser")
+			hr
+		div(id="stream-message-no-h264" class="hidden")
+			+menu_message("warning", "H.264 is not supported by this browser")
+			hr
+		table(class="kv" style="width: calc(100% - 20px)")
+			tr(id="stream-resolution" class="feature-disabled")
+				td Resolution:
+				td #[select(disabled data-dont-hide-menu id="stream-resolution-selector")]
+			tr(id="stream-quality" class="feature-disabled")
+				td JPEG quality:
+				td #[input(disabled type="range" id="stream-quality-slider" class="slider")]
+				td(id="stream-quality-value" class="value" style="min-width: 30px; max-width:30px")
+			tr(id="stream-h264-bitrate" class="feature-disabled")
+				td H.264 kbps:
+				td #[input(disabled type="range" id="stream-h264-bitrate-slider" class="slider")]
+				td(id="stream-h264-bitrate-value" class="value" style="min-width: 30px; max-width:30px")
+			tr
+				td Max FPS:
+				td #[input(disabled type="range" id="stream-desired-fps-slider" class="slider")]
+				td(id="stream-desired-fps-value" class="value" style="min-width: 30px; max-width:30px")
+			tr(id="stream-mode" class="feature-disabled")
+				td Video #[a(target="_blank" href="https://docs.pikvm.org/webrtc") mode]:
+				td
+					div(class="radio-box")
+						input(checked type="radio" id="stream-mode-radio-mjpeg" name="stream-mode-radio" value="mjpeg")
+						label(for="stream-mode-radio-mjpeg") MJPEG / HTTP
+						input(type="radio" id="stream-mode-radio-janus" name="stream-mode-radio" value="janus")
+						label(for="stream-mode-radio-janus") H.264 / WebRTC
+			tr(id="stream-audio", class="feature-disabled")
+				td Audio volume:
+				td #[input(type="range" id="stream-audio-volume-slider" class="slider")]
+				td(id="stream-audio-volume-value" class="value" style="min-width: 30px; max-width:30px")
+		hr
+		div(class="buttons buttons-row")
+			button(data-force-hide-menu data-show-window="stream-window" class="row33") &bull; Show stream
+			button(disabled data-force-hide-menu id="stream-screenshot-button" class="row33") &bull; Screenshot
+			button(disabled id="stream-reset-button" class="row33") Reset stream
+		div(id="hid-outputs" class="feature-disabled")
+			hr
+			table(class="kv")
+				tr(id="hid-outputs-keyboard", class="feature-disabled")
+					td Keyboard mode:
+					td #[div(id="hid-outputs-keyboard-box" class="radio-box")]
+				tr(id="hid-outputs-mouse", class="feature-disabled")
+					td Mouse #[a(target="_blank" href="https://docs.pikvm.org/mouse") mode]:
+					td #[div(id="hid-outputs-mouse-box" class="radio-box")]
+		details
+			summary Mouse settings
+			div(class="spoiler")
+				table(class="kv")
+					tr
+						td Mouse polling rate:
+						td #[input(type="range" id="hid-mouse-rate-slider" class="slider")]
+						td(id="hid-mouse-rate-value" class="value" style="min-width: 30px; max-width:30px")
+					tr(id="hid-mouse-sens" class="feature-disabled")
+						td Relative mouse sensitivity:
+						td #[input(disabled type="range" id="hid-mouse-sens-slider" class="slider")]
+						td(id="hid-mouse-sens-value" class="value" style="min-width: 30px; max-width:30px")
+					tr(id="hid-mouse-squash" class="feature-disabled")
+						+menu_switch_notable("hid-mouse-squash-switch", "Squash relative mouse moves", true, true)
+					tr
+						+menu_switch_notable("hid-mouse-reverse-scrolling-switch", "Reverse mouse scrolling", true, false)
+		table(class="kv")
+			tr(id="hid-connect" class="feature-disabled")
+				+menu_switch_notable("hid-connect-switch", "Connect HID to Server", true, true)
+			tr
+				+menu_switch_notable("hid-mute-switch", "Mute HID input events", true, false)
+			tr(id="v3-usb-breaker" class="feature-disabled")
+				td Connect main USB to Server:
+				td(align="right")
+					div(class="switch-box")
+						-let msg = "Turning off this switch will disconnect the main USB<br>from the server."
+						-msg += " Are you sure you want to continue?"
+						input(disabled type="checkbox" id="gpio-switch-__v3_usb_breaker__" class="gpio-switch"
+							data-channel="__v3_usb_breaker__" data-confirm-off=msg)
+						label(for="gpio-switch-__v3_usb_breaker__")
+							span(class="switch-inner")
+							span(class="switch")
+			tr
+				+menu_switch_notable("page-close-ask-switch", "Ask page close confirmation", true, true)
+		hr
+		div(class="buttons buttons-row")
+			button(data-force-hide-menu data-show-window="keyboard-window" class="row50") &bull; Show keyboard
+			button(disabled id="hid-reset-button" class="row50") Reset HID

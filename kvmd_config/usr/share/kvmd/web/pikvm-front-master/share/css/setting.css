@@ -1,0 +1,208 @@
+.setting {
+    display: flex;
+    height: 100vh;
+    padding-top: 60px;
+    box-sizing: border-box;
+}
+
+.setting p {
+    margin: 0;
+}
+
+.setting button {
+    width: auto;
+    padding: 1px 10px;
+    background: #ccc;
+    border: 1px solid #000;
+    border-radius: 0;
+    color: #fff;
+    font-size: 12px;
+}
+
+.setting .title {
+    cursor: pointer;
+}
+
+.menu li {
+    cursor: pointer;
+}
+
+.menu .active {
+    color: #789bde;
+}
+
+.right {
+    flex: 1;
+    padding: 20px 20px 0;
+    overflow-y: auto;
+}
+
+.right .box {
+    position: relative;
+    padding: 20px 10px 0;
+    border: 1px solid #000;
+    margin-bottom: 20px;
+}
+
+.right .box .desc {
+    position: absolute;
+    top: 0;
+    left: 10px;
+    transform: translate(0, -50%);
+    background: #fff;
+    color: #789bde;
+    padding: 0 5px;
+}
+
+.right .box .item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.right .box .item-start {
+    justify-content: flex-start;
+    margin-bottom: 10px;
+}
+
+.right .box .item-self {
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.right .box .item .value {
+    width: 300px;
+    text-align: left;
+}
+
+.right .box .item .all {
+    flex: 1;
+}
+
+.right .box .item input.value {
+    padding: 0 5px 0;
+    border: 1px solid #000;
+}
+
+.right .box .item input.value:disabled {
+    background: #ccc;
+}
+
+
+.right .box .item select.value {
+    padding: 0 5px 0;
+    border: 1px solid #000;
+}
+
+.right .item-nic,
+.right .item-speed {
+    margin-bottom: 20px;
+}
+
+.right .item-lock {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.right .item-lock>div {
+    margin-right: 50px;
+}
+
+.right .table-row {
+    display: flex;
+}
+
+.right .item-table {
+    width: 100%;
+}
+
+.right .item-time .num {
+    display: inline-block;
+    width: 20px;
+    padding: 5px;
+    border: 1px solid #000;
+    border-radius: 5px;
+}
+
+.right #date-time-sync {
+    margin-left: 50px;
+}
+
+.right .table-row th:nth-child(n + 1),
+.right .table-row td:nth-child(n + 1),
+.right .table-row th:nth-child(n + 2),
+.right .table-row td:nth-child(n + 2),
+.right .table-row th:nth-child(n + 3),
+.right .table-row td:nth-child(n + 3) {
+    flex: 1;
+    text-align: center;
+}
+
+.right .table-row th:nth-child(n + 4),
+.right .table-row td:nth-child(n + 4) {
+    flex: 5;
+    text-align: center;
+}
+
+.right #logs-empty {
+    text-align: center;
+}
+
+.user-content {
+    display: flex;
+    margin-bottom: 50px;
+}
+
+.user-content ul {
+    margin: 5px 0;
+}
+
+.user-content #user-role-menu {
+    padding: 10px;
+    border: 1px solid #fff;
+}
+
+.user-content p,
+.user-content li {
+    cursor: pointer;
+}
+
+.user-content .panel {
+    padding: 10px;
+    border: 1px solid #fff;
+    margin: 0 10px;
+}
+
+.user-content .panel .item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.user-content .panel .item .value {
+    margin-left: 20px;
+    border: 1px solid #000;
+}
+
+.user-btns,
+.log-btns {
+    display: flex;
+}
+
+.user-btns button+button {
+    margin-left: 50px;
+}
+
+.firmware .avail {
+    display: flex;
+}
+
+.firmware .avail span {
+    color: #2e67ff;
+}
+
+.edid button:disabled {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.40);
+}
